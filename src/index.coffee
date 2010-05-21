@@ -1,5 +1,4 @@
 Gzip: require('node-compress').Gzip
-coffeescript: null
 compiler: require('closure-compiler').compile
 Buffer: require('buffer').Buffer
 Parallel: require('parallel').Parallel
