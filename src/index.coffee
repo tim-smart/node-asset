@@ -43,52 +43,51 @@ class Package
       @contents: contents
       @dirs: dirs
 
-      makePackage @
+      @make()
 
       if @watch is true
         watch @
 
+  make: ->
+    read_task: new Parallel()
+    @contents.forEach (asset) ->
+      read_task.add asset.path, [fs.readFile, asset.path]
+
+    if @type is 'js' or @type is 'coffee'
+      compile: (data) =>
+        compiler data, (data) =>
+          if @compress then compress data
+          else write data
+
+    if @type is 'css'
+      compile: (data) =>
+        yui_compile data, { type: 'css' }, (data) =>
+          if @compress then compress data
+          else write data
+
+    compress: (data) ->
+      if data.length <= 0 then data: ' '
+      compressGzip data, (data) ->
+        write data
+    write: (data) =>
+      fs.writeFile @filename, data, 'binary', =>
+        log "Successfuly made a $@type package"
+
+    result: ''
+    read_task.run (filename, err, data) =>
+      if filename is null
+        if @type is 'coffee'
+          result: require('coffee-script').compile result, {
+            no_wrap: true
+          }
+
+        if @compile then compile result
+        else if @compress then compress result
+        else write result
+      else
+        result: + data.toString() + "\n"
+
 exports.Package: Package
-
-makePackage: (package) ->
-  if package.contents.length <= 0 then return
-
-  read_task: new Parallel()
-  package.contents.forEach (asset) ->
-    read_task.add asset.path, [fs.readFile, asset.path]
-
-  if package.type is 'js' or package.type is 'coffee'
-    compile: (data) ->
-      compiler data, (data) ->
-        if package.compress then compress data
-        else write data
-
-  if package.type is 'css'
-    compile: (data) ->
-      yui_compile data, { type: 'css' }, (data) ->
-        if package.compress then compress data
-        else write data
-
-  compress: (data) ->
-    compressGzip data, (data) ->
-      write data
-  write: (data) ->
-    fs.writeFile package.filename, data, 'binary', ->
-      log "Successfuly made a $package.type package"
-
-  result: ''
-  read_task.run (filename, err, data) ->
-    if filename is null
-      if package.type is 'coffee'
-        result: require('coffee-script').compile result, {
-          no_wrap: true
-        }
-
-      if package.compile then compile result
-      else if package.compress then compress result
-      else write result
-    else
-      result: + data.toString() + "\n"
 
 class Asset
   constructor: (pathname, dir) ->
@@ -150,4 +149,4 @@ watch: (package) ->
   package.contents.forEach (asset) ->
     fs.watchFile asset.path, (stat, prev) ->
       log "Updating a $package.type package"
-      makePackage package
+      package.make()
