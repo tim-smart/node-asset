@@ -1,9 +1,14 @@
 Gzip: require('node-compress').Gzip
 compiler: require('closure-compiler').compile
+yui_compile: require('yui-compressor').compile
 Buffer: require('buffer').Buffer
 Parallel: require('parallel').Parallel
 fs: require 'fs'
 path: require 'path'
+sys: require 'sys'
+
+log: (message) ->
+  sys.puts "[node-asset][${new Date().toLocaleTimeString()}] $message"
 
 class Package
   constructor: (output, input, options) ->
@@ -46,9 +51,31 @@ class Package
 exports.Package: Package
 
 makePackage: (package) ->
+  if package.contents.length <= 0 then return
+
   read_task: new Parallel()
   package.contents.forEach (asset) ->
     read_task.add asset.path, [fs.readFile, asset.path]
+
+  if package.type is 'js' or package.type is 'coffee'
+    compile: (data) ->
+      compiler data, (data) ->
+        if package.compress then compress data
+        else write data
+
+  if package.type is 'css'
+    compile: (data) ->
+      yui_compile data, { type: 'css' }, (data) ->
+        if package.compress then compress data
+        else write data
+
+  compress: (data) ->
+    compressGzip data, (data) ->
+      write data
+  write: (data) ->
+    fs.writeFile package.filename, data, 'binary', ->
+      log "Successfuly made a $package.type package"
+
   result: ''
   read_task.run (filename, err, data) ->
     if filename is null
@@ -62,16 +89,6 @@ makePackage: (package) ->
       else write result
     else
       result: + data.toString() + "\n"
-  if package.type is 'js' or package.type is 'coffee'
-    compile: (data) ->
-      compiler data, (data) ->
-        if package.compress then compress data
-        else write data
-    compress: (data) ->
-      compressGzip data, (data) ->
-        write data
-    write: (data) ->
-      fs.writeFile package.filename, data, 'binary'
 
 class Asset
   constructor: (pathname, dir) ->
@@ -129,5 +146,8 @@ compressGzip: (data, callback) ->
       if err then throw err
       callback data + data2
 
-watch: (files, dirs) ->
-  # TODO: Watch files
+watch: (package) ->
+  package.contents.forEach (asset) ->
+    fs.watchFile asset.path, (stat, prev) ->
+      log "Updating a $package.type package"
+      makePackage package
