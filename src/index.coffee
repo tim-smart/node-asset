@@ -12,6 +12,7 @@ log: (message) ->
 
 class Package
   constructor: (output, input, options) ->
+    @mtime: 0
     @filename: output
     @contents: input
 
@@ -21,11 +22,16 @@ class Package
     @compile: if options.compile is true or !options.compile? then true
     else false
 
-    if options.watch is true or !options.watch?
-      @watch: true
-    else @watch: false
+    @watch: if options.watch is true or !options.watch? then true
+    else false
 
     @type: if options.type then options.type else 'js'
+
+  @TYPES: {
+    'coffee': ['js', 'coffee']
+    'js': ['js']
+    'css': ['css']
+  }
 
   add: (item) ->
     if false is @contents instanceof Array
@@ -37,7 +43,7 @@ class Package
     resolveContents @contents, (files, dirs) =>
       contents: []
       files.forEach (asset) =>
-        if asset.type is @type
+        if Package.TYPES[@type].indexOf(asset.type) > -1
           contents.push asset
 
       @contents: contents
@@ -71,21 +77,25 @@ class Package
         write data
     write: (data) =>
       fs.writeFile @filename, data, 'binary', =>
+        @mtime: new Date().getTime()
         log "Successfuly made a $@type package"
 
-    result: ''
+    string_buffer: ''
+    coffee_buffer: null
     read_task.run (filename, err, data) =>
       if filename is null
-        if @type is 'coffee'
-          result: require('coffee-script').compile result, {
+        if coffee_buffer
+          string_buffer: + require('coffee-script').compile coffee_buffer, {
             no_wrap: true
           }
-
-        if @compile then compile result
-        else if @compress then compress result
-        else write result
+        if @compile then compile string_buffer
+        else if @compress then compress string_buffer
+        else write string_buffer
+      else if '.coffee' is path.extname filename
+        coffee_buffer: || ''
+        coffee_buffer: + data.toString() + "\n"
       else
-        result: + data.toString() + "\n"
+        string_buffer: + data.toString() + "\n"
 
 exports.Package: Package
 
