@@ -56,8 +56,11 @@ class Package
 
   make: ->
     read_task: new Parallel()
+    contents_index: {}
+    i: 0
     @contents.forEach (asset) ->
       read_task.add asset.path, [fs.readFile, asset.path]
+      contents_index[asset.path]: i++
 
     if @type is 'js' or @type is 'coffee'
       compile: (data) =>
@@ -80,22 +83,25 @@ class Package
         @mtime: new Date().getTime()
         log "Successfuly made a $@type package"
 
-    string_buffer: ''
+    string_buffer: []
     coffee_buffer: null
     read_task.run (filename, err, data) =>
+      if err then log error
       if filename is null
+        if string_buffer.length > 0 then string_buffer: string_buffer.join('\n') + '\n'
+        else string_buffer: ''
         if coffee_buffer
-          string_buffer: + require('coffee-script').compile coffee_buffer, {
+          string_buffer: + require('coffee-script').compile coffee_buffer.join('\n'), {
             no_wrap: true
           }
         if @compile then compile string_buffer
         else if @compress then compress string_buffer
         else write string_buffer
       else if '.coffee' is path.extname filename
-        coffee_buffer: || ''
-        coffee_buffer: + data.toString() + "\n"
+        coffee_buffer: || []
+        coffee_buffer[contents_index[filename]]: data.toString()
       else
-        string_buffer: + data.toString() + "\n"
+        string_buffer[contents_index[filename]]: data.toString()
 
 exports.Package: Package
 
