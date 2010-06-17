@@ -27,6 +27,8 @@ class Package
 
     @type: if options.type then options.type else 'js'
 
+    @wrap: if options.wrap is true or !options.wrap? then true else false
+
   @TYPES: {
     'coffee': ['js', 'coffee']
     'js': ['js']
@@ -86,20 +88,27 @@ class Package
     string_buffer: []
     coffee_buffer: null
     read_task.run (filename, err, data) =>
-      if err then log error
       if filename is null
         if string_buffer.length > 0 then string_buffer: string_buffer.join('\n') + '\n'
         else string_buffer: ''
         if coffee_buffer
           string_buffer: + require('coffee-script').compile coffee_buffer.join('\n'), {
-            no_wrap: true
+            noWrap: yes
           }
         if @compile then compile string_buffer
         else if @compress then compress string_buffer
         else write string_buffer
+      else if err then log err.message
       else if '.coffee' is path.extname filename
-        coffee_buffer: || []
-        coffee_buffer[contents_index[filename]]: data.toString()
+        if @wrap
+          string_buffer[contents_index[filename]]: require('coffee-script').compile data.toString()
+        else
+          coffee_buffer: || []
+          coffee_buffer[contents_index[filename]]: data.toString()
+      else if @wrap and '.js' is path.extname filename
+        string_buffer[contents_index[filename]]: '(function () {' +
+                                                 data.toString() +
+                                                 '\n})();'
       else
         string_buffer[contents_index[filename]]: data.toString()
 
@@ -165,4 +174,6 @@ watch: (package) ->
   package.contents.forEach (asset) ->
     fs.watchFile asset.path, (stat, prev) ->
       log "Updating a $package.type package"
-      package.make()
+      setTimeout ->
+        package.make()
+      , 1000
