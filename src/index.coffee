@@ -92,16 +92,22 @@ class Package
         if string_buffer.length > 0 then string_buffer: string_buffer.join('\n') + '\n'
         else string_buffer: ''
         if coffee_buffer
-          string_buffer: + require('coffee-script').compile coffee_buffer.join('\n'), {
-            noWrap: yes
-          }
+          try
+            string_buffer: + require('coffee-script').compile coffee_buffer.join('\n'), {
+              noWrap: yes
+            }
+          catch error
+            log error.message
         if @compile then compile string_buffer
         else if @compress then compress string_buffer
         else write string_buffer
       else if err then log err.message
       else if '.coffee' is path.extname filename
         if @wrap
-          string_buffer[contents_index[filename]]: require('coffee-script').compile data.toString()
+          try
+            string_buffer[contents_index[filename]]: require('coffee-script').compile data.toString()
+          catch error
+            log error.message
         else
           coffee_buffer: || []
           coffee_buffer[contents_index[filename]]: data.toString()
