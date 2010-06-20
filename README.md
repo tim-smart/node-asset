@@ -1,3 +1,8 @@
+Instal with npm
+---------------
+
+`npm install node-asset`
+
 Dependancies
 ------------
 

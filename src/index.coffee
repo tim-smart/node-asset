@@ -1,4 +1,4 @@
-Gzip: require('node-compress').Gzip
+Gzip: require('compress').Gzip
 compiler: require('closure-compiler').compile
 yui_compile: require('yui-compressor').compile
 Buffer: require('buffer').Buffer
