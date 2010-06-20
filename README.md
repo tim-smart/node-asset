@@ -6,7 +6,7 @@ All dependancies need to be in your node libraries path (such as `~/.node_librar
 * node-compress http://github.com/egorich239/node-compress
 * node-closure http://github.com/Tim-Smart/node-closure
 * node-yui-compressor http://github.com/Tim-Smart/node-yui-compressor
-* parallel (from node-common) http://github.com/Tim-Smart/node-common
+* parallel: http://github.com/Tim-Smart/node-parallel
 
 To compile
 ----------

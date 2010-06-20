@@ -2,7 +2,7 @@ Gzip: require('node-compress').Gzip
 compiler: require('closure-compiler').compile
 yui_compile: require('yui-compressor').compile
 Buffer: require('buffer').Buffer
-Parallel: require('parallel').Parallel
+Task: require('parallel').Task
 fs: require 'fs'
 path: require 'path'
 sys: require 'sys'
@@ -57,7 +57,7 @@ class Package
         watch @
 
   make: ->
-    read_task: new Parallel()
+    read_task: new Task()
     contents_index: {}
     i: 0
     @contents.forEach (asset) ->
@@ -134,7 +134,7 @@ resolveContents: (input, callback) ->
   if 'string' is typeof input
     input: [input]
 
-  lookup_task: new Parallel()
+  lookup_task: new Task()
 
   input.forEach (pathname) ->
     lookup_task.add pathname, [fs.stat, pathname]
@@ -150,7 +150,7 @@ resolveContents: (input, callback) ->
         else files.push asset
 
       if dirs.length > 0
-        lookup_task: new Parallel()
+        lookup_task: new Task()
         dirs.forEach (dir) -> lookup_task.add dir.path, [fs.readdir, dir.path]
         lookup_task.run (dir, err, paths) ->
           if dir is null
