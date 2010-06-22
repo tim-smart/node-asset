@@ -16,14 +16,11 @@ class Package
     @filename: output
     @contents: input
 
-    @compress: if options.compress is true or !options.compress? then true
-    else false
+    @compress: if options.compress is true then true else false
 
-    @compile: if options.compile is true or !options.compile? then true
-    else false
+    @compile: if options.compile is true then true else false
 
-    @watch: if options.watch is true or !options.watch? then true
-    else false
+    @watch: if options.watch is true then true else false
 
     @type: if options.type then options.type else 'js'
 
