@@ -39,14 +39,13 @@ class Package
     @contents.push item
 
   serve: ->
-    resolveContents @contents, (files, dirs) =>
+    resolveContents @contents, (files) =>
       contents: []
       files.forEach (asset) =>
         if Package.TYPES[@type].indexOf(asset.type) > -1
           contents.push asset
 
       @contents: contents
-      @dirs: dirs
 
       @make()
 
@@ -133,34 +132,49 @@ resolveContents: (input, callback) ->
 
   lookup_task: new Task()
 
-  input.forEach (pathname) ->
-    lookup_task.add pathname, [fs.stat, pathname]
+  results: {}
 
-  results: []
+  input.forEach (pathname) ->
+    results[pathname]: null
+    lookup_task.add pathname, [fs.stat, pathname]
 
   lookup_task.run (name, err, stats) ->
     if name is null
-      dirs: []
-      files: []
-      results.forEach (asset) ->
-        if asset.dir is true then dirs.push asset
-        else files.push asset
+      dirs: {}
+      Object.keys(results).forEach (key) ->
+        asset: results[key]
+        if asset.dir is true then dirs[key]: asset
+        else results[key]: asset
 
-      if dirs.length > 0
+      keys: Object.keys dirs
+      if keys.length > 0
         lookup_task: new Task()
-        dirs.forEach (dir) -> lookup_task.add dir.path, [fs.readdir, dir.path]
-        lookup_task.run (dir, err, paths) ->
-          if dir is null
-            callback files, dirs
+        keys.forEach (key) ->
+          dir: dirs[key]
+          lookup_task.add key, [fs.readdir, dir.path]
+        lookup_task.run (key, err, paths) ->
+          if key is null
+            ret()
           else if err then return
           else
-            paths.forEach (pathname) -> files.push new Asset path.join dir, pathname
+            dir: dirs[key]
+            results[key]: []
+            paths.forEach (pathname) -> results[key].push new Asset path.join dir.path, pathname
       else
-        callback files, dirs
+        ret()
     else
       if err then return
-      if stats.isDirectory() then results.push new Asset name, true
-      else results.push new Asset name
+      if stats.isDirectory() then results[name]: new Asset name, true
+      else results[name]: new Asset name
+  ret: ->
+    files: []
+    Object.keys(results).forEach (key) ->
+      asset: results[key]
+      if asset instanceof Array
+        asset.forEach (file) ->
+          files.push file
+      else files.push asset
+    callback files
 
 compressGzip: (data, callback) ->
   buffer: new Buffer Buffer.byteLength data, 'binary'
