@@ -1,7 +1,7 @@
 {
   "name": "node-asset",
   "description": "A asset packager for Node.js",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "author": "Tim-Smart",
   "repository": {
     "type": "git",

@@ -143,7 +143,10 @@ resolveContents: (input, callback) ->
       dirs: {}
       Object.keys(results).forEach (key) ->
         asset: results[key]
-        if asset.dir is true then dirs[key]: asset
+        if asset is null
+          delete results[key]
+          log "WARNING: Asset $key not found."
+        else if asset.dir is true then dirs[key]: asset
         else results[key]: asset
 
       keys: Object.keys dirs
