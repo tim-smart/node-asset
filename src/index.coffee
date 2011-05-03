@@ -5,10 +5,9 @@ Buffer      = require('buffer').Buffer
 Task        = require('parallel').Task
 fs          = require 'fs'
 path        = require 'path'
-sys         = require 'sys'
 
 log = (message) ->
-  sys.puts "[node-asset][${new Date().toLocaleTimeString()}] $message"
+  console.log "[node-asset][#{new Date().toLocaleTimeString()}] #{message}"
 
 class Package
   constructor: (output, input, options) ->
@@ -17,14 +16,10 @@ class Package
     @contents = input
 
     @compress = if options.compress is true then true else false
-
-    @compile = if options.compile is true then true else false
-
-    @watch = if options.watch is true then true else false
-
-    @type = if options.type then options.type else 'js'
-
-    @wrap = if options.wrap is true or !options.wrap? then true else false
+    @compile  = if options.compile is true then true else false
+    @watch    = if options.watch is true then true else false
+    @type     = if options.type then options.type else 'js'
+    @wrap     = if options.wrap is true or !options.wrap? then true else false
 
   @TYPES: {
     'coffee': ['js', 'coffee']
