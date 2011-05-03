@@ -74,7 +74,7 @@ class Package
     write = (data) =>
       fs.writeFile @filename, data, 'binary', =>
         @mtime = new Date().getTime()
-        log "Successfuly made a $@type package"
+        log "Successfuly made a #{@type} package"
 
     string_buffer = []
     coffee_buffer = null
@@ -140,7 +140,7 @@ resolveContents: (input, callback) ->
         asset = results[key]
         if asset is null
           delete results[key]
-          log "WARNING: Asset $key not found."
+          log "WARNING: Asset #{key} not found."
         else if asset.dir is true then dirs[key] = asset
         else results[key] = asset
 
@@ -188,7 +188,6 @@ compressGzip = (data, callback) ->
 watch = (package) ->
   package.contents.forEach (asset) ->
     fs.watchFile asset.path, (stat, prev) ->
-      log "Updating a $package.type package"
-      setTimeout ->
-        package.make()
-      , 1000
+      return if (stat.mtime - prev.mtime) is 0
+      log "Updating a #{package.type} package"
+      package.make()
