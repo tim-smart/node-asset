@@ -63,7 +63,8 @@ class Package
 
     if @type is 'css'
       compile = (data) =>
-        yui_compile data, { type: 'css' }, (data) =>
+        yui_compile data, { type: 'css' }, (error, data) =>
+          return log error.toString() if error
           if @compress then compress data
           else write data
 

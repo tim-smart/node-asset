@@ -1,18 +1,17 @@
-{
-  "name": "node-asset",
-  "description": "A asset packager for Node.js",
-  "version": "0.1.5",
-  "author": "Tim-Smart",
-  "repository": {
-    "type": "git",
-    "url": "http://github.com/Tim-Smart/node-asset.git"
-  },
-  "engine": [ "node >=0.1.90" ],
-  "dependencies": {
-    "compress": ">=0.1.6",
-    "closure-compiler": ">=0.1.0",
-    "yui-compressor": ">=0.1.0",
-    "parallel": ">=0.1.0"
-  },
-  "main": "./lib/node-asset"
+{ "name"               : "node-asset"
+, "description"        : "A asset packager for Node.js"
+, "version"            : "0.1.5"
+, "author"             : "Tim-Smart"
+, "repository"         :
+  { "type"             : "git"
+  , "url"              : "http://github.com/Tim-Smart/node-asset.git"
+  }
+, "engine"             : [ "node >=0.4" ]
+, "dependencies"       :
+  { "compress"         : ">=0.1.6"
+  , "closure-compiler" : "0.1.x"
+  , "yui-compressor"   : "0.1.x"
+  , "parallel"         : ">=0.1.0"
+  }
+, "main"               : "./lib"
 }
